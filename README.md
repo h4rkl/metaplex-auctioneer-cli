@@ -15,8 +15,8 @@ Follow the metaplex docs to create an auction house using the metaplex auction h
 
 eg.
 
-`ts-node auction-house-cli.ts create_auction_house -e devnet -k $YOUR_KEY -tm boomh1LQnwDnHtKxWTFgxcbdRjPypRSjdwxkAEJkFSH -sfbp 500`
-`ts-node auction-house-cli.ts update_auction_house -e devnet -k $YOUR_KEY -tm boomh1LQnwDnHtKxWTFgxcbdRjPypRSjdwxkAEJkFSH -sfbp 200 -ah $YOUR_AUCTION_HOUSE`
+- `ts-node auction-house-cli.ts create_auction_house -e devnet -k $YOUR_KEY -tm boomh1LQnwDnHtKxWTFgxcbdRjPypRSjdwxkAEJkFSH -sfbp 500`
+- `ts-node auction-house-cli.ts update_auction_house -e devnet -k $YOUR_KEY -tm boomh1LQnwDnHtKxWTFgxcbdRjPypRSjdwxkAEJkFSH -sfbp 200 -ah $YOUR_AUCTION_HOUSE`
 
 Created auction house $YOUR_AUCTION_HOUSE
 
