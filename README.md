@@ -34,7 +34,7 @@ Once your auction house is setup you can authorize and delegate authority using 
 
 `ts-node auctioneer-cli.ts delegate -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE`
 
-Delegated auctioneer authority at: BxgMwm7DBrMgfeMt33LgLzba3Hp6ihgeW2UkipsZCL4y with PDA: 93FsHeacX2R6hskeHfZyorpHAoY1LFyFaWddmF5Hmzez for auction house at: $YOUR_AUCTION_HOUSE now you can sell your NFTs.
+Delegated auctioneer authority at: `BxgMwm7DBrMgfeMt33LgLzba3Hp6ihgeW2UkipsZCL4y` with PDA: `93FsHeacX2R6hskeHfZyorpHAoY1LFyFaWddmF5Hmzez` for auction house at: `$YOUR_AUCTION_HOUSE` now you can sell your NFTs.
 
 ## WIP functions non-working
 
