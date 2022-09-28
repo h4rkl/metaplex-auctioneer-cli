@@ -22,9 +22,9 @@ Created auction house $YOUR_AUCTION_HOUSE
 
 Once setup use show and transfer SOL to fund the 'Fee Payer Acc'
 
-`ts-node auction-house-cli.ts show -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE`
-`ts-node auction-house-cli.ts sell -k $YOUR_KEY -e devnet -ah $YOUR_AUCTION_HOUSE -b 100 -t 1 -m 8MATkSayE5SQS9gK8HqBmqcj5RKUxX8f9zmydomBcN7h`
-`ts-node auction-house-cli.ts show_escrow -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE`
+- `ts-node auction-house-cli.ts show -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE`
+- `ts-node auction-house-cli.ts sell -k $YOUR_KEY -e devnet -ah $YOUR_AUCTION_HOUSE -b 100 -t 1 -m $YOUR_NFT`
+- `ts-node auction-house-cli.ts show_escrow -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE`
 
 ## Setup
 
@@ -38,8 +38,8 @@ Once your auction house is setup you can authorize and delegate authority using 
 
 ## WIP functions non-working
 
-`ts-node auctioneer-cli.ts sell -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE -m $TOKEN_MINT -b 500`
-`ts-node auctioneer-cli.ts cancel -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE -m $TOKEN_MINT -b 500`
+- `ts-node auctioneer-cli.ts sell -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE -m $TOKEN_MINT -b 500`
+- `ts-node auctioneer-cli.ts cancel -k $YOUR_KEY -ah $YOUR_AUCTION_HOUSE -m $TOKEN_MINT -b 500`
 
 ## Credits
 
