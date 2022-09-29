@@ -14,6 +14,7 @@ import { BN, Idl, web3 } from '@project-serum/anchor';
 import {
   AUCTIONEER_PROGRAM_ID,
   AUCTION_HOUSE_PROGRAM_ID,
+  BIG_INT_MAX_U64,
   TOKEN_PROGRAM_ID,
   WRAPPED_SOL_MINT,
 } from './helpers/constants';
@@ -169,13 +170,6 @@ programCommand('delegate')
     );
   });
 
-// TODO: Sove the program error in
-// https://explorer.solana.com/tx/2U14bEyUYGj7ZHAKeH2cAmvncXcRYjbiZgwyo2R1qA21sdF6ScQLe88NgzT5eSzn1oL4cHZMsmiWWBr4cFab7n15?cluster=devnet
-/**
- *  Program logged: "AnchorError caused by account: seller_trade_state. Error Code: ConstraintSeeds. Error Number: 2006. Error Message: A seeds constraint was violated."
- * Program consumed: 24624 of 200000 compute units
- * Program returned error: "custom program error: 0x7d6"
- */
 programCommand('sell')
   .option('-ah, --auction-house <string>', 'Specific auction house')
   .option('-b, --buy-price <string>', 'Price you wish to sell for')
@@ -275,7 +269,7 @@ programCommand('sell')
       tokenAccountKey,
       auctionHouseObj.treasuryMint,
       mintKey,
-      buyPriceAdjusted,
+      new BN(BIG_INT_MAX_U64),
       tokenSizeAdjusted,
     );
 
@@ -286,7 +280,7 @@ programCommand('sell')
         tokenAccountKey,
         auctionHouseObj.treasuryMint,
         mintKey,
-        new BN(0),
+        new BN('0'),
         tokenSizeAdjusted,
       );
 
@@ -328,8 +322,6 @@ programCommand('sell')
     };
 
     const instruction = createSellInstruction(accounts, args);
-
-    console.log('Instruction', ObjtoString(accounts));
 
     await sendTransactionWithRetryWithKeypair(
       auctionHouseProgram.provider.connection,

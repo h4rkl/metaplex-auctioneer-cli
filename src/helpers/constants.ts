@@ -51,3 +51,4 @@ export const CLUSTERS: Cluster[] = [
   },
 ];
 export const DEFAULT_CLUSTER = CLUSTERS[2];
+export const BIG_INT_MAX_U64 = '18446744073709551615';
