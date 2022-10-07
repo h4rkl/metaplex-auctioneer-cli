@@ -219,6 +219,16 @@ export const getAuctionHouseTreasuryAcct = async (
   );
 };
 
+export const getAuctionHouseBuyerEscrow = async (
+  auctionHouse: anchor.web3.PublicKey,
+  wallet: anchor.web3.PublicKey,
+): Promise<[PublicKey, number]> => {
+  return await anchor.web3.PublicKey.findProgramAddress(
+    [Buffer.from(AUCTION_HOUSE), auctionHouse.toBuffer(), wallet.toBuffer()],
+    AUCTION_HOUSE_PROGRAM_ID,
+  );
+};
+
 export const getAuctioneerListingConfig = async (
   walletKey: anchor.web3.PublicKey,
   auctionHouseKey: anchor.web3.PublicKey,
