@@ -705,7 +705,7 @@ programCommand('buy')
 
     const [tokenAccountKey] = await getAtaForMint(
       mintKey,
-      walletKeyPair.publicKey,
+      sellerWalletKey,
     );
 
     const [listingConfig] = await getAuctioneerListingConfig(
