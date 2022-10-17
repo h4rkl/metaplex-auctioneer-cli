@@ -6,7 +6,10 @@ The partially completed missing CLI for Metaplex's Auctioneer program.
 
 - authorize [options] (working)
 - delegate [options] (working)
-- sell [options]
+- deposit [options] 
+- sell [options] (working)
+- buy [options] (working)
+- withdraw [options]
 - cancel [options] (broken - see notes on method)
 - help [command] (display help for command)
 
