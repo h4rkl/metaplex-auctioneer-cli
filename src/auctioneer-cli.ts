@@ -57,6 +57,9 @@ import {
 import { program } from 'commander';
 import { sendTransactionWithRetryWithKeypair } from './helpers/transactions';
 import {
+  CloseEscrowAccountInstructionAccounts,
+  CloseEscrowAccountInstructionArgs,
+  createCloseEscrowAccountInstruction,
   createDelegateAuctioneerInstruction,
   createUpdateAuctioneerInstruction,
   DelegateAuctioneerInstructionAccounts,
@@ -427,7 +430,7 @@ programCommand('sell')
 
     const instruction = createSellInstruction(accounts, args);
 
-    await sendTransactionWithRetryWithKeypair(
+    const tx = await sendTransactionWithRetryWithKeypair(
       auctionHouseProgram.provider.connection,
       walletKeyPair,
       [instruction],
@@ -436,7 +439,9 @@ programCommand('sell')
     );
 
     log.info(
-      'Set',
+      'Transaction:',
+      tx.txid,
+      '| Sell',
       tokenSize,
       mint,
       'for sale for',
@@ -789,183 +794,233 @@ programCommand('buy')
     );
   });
 
-// programCommand('execute_sale')
-//   .option('-ah, --auction-house <string>', 'Specific auction house')
-//   .option('-b, --buy-price <string>', 'Price you wish to sell for')
-//   .option('-m, --mint <string>', 'Mint of the token to purchase')
-//   .option('-t, --token-size <string>', 'Amount of tokens you want to sell')
-//   .option('-bw, --buyer-wallet <string>', 'Buyer wallet')
-//   .option('-sw, --seller-wallet <string>', 'Buyer wallet')
-//   .description('Execute sale between provided buyer and seller trade state accounts transferring funds to seller wallet and token to buyer wallet.')
-//   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-//   .action(async (directory, cmd) => {
-//     const {
-//       keypair,
-//       env,
-//       auctionHouse,
-//       buyPrice,
-//       mint,
-//       tokenSize,
-//       buyerWallet,
-//       sellerWallet,
-//     } = cmd.opts();
+  programCommand('close_account')
+  .option('-ah, --auction-house <string>', 'Specific auction house')
+  .option('-b, --buy-price <string>', 'Price you wish to purchase for')
+  .description('Close the escrow account of the user')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  .action(async (directory, cmd) => {
+    const { keypair, env, auctionHouse } = cmd.opts();
 
-//     const auctionHouseKey = new web3.PublicKey(auctionHouse);
-//     const walletKeyPair = loadWalletKey(keypair);
+    const auctionHouseKey = new web3.PublicKey(auctionHouse);
+    const walletKeyPair = loadWalletKey(keypair);
 
-//     const mintKey = new web3.PublicKey(mint);
-//     const buyer = new web3.PublicKey(buyerWallet);
-//     const seller = new web3.PublicKey(sellerWallet);
+    const auctionHouseProgram = await loadAuctionHouseProgram(
+      walletKeyPair,
+      env,
+    );
 
-//     const [auctioneerAuthority, auctioneerAuthorityBump] =
-//       await getAuctioneerAuthority(auctionHouseKey);
+    const [escrowPaymentAccount, escrowPaymentBump] =
+      await getAuctionHouseBuyerEscrow(
+        auctionHouseKey,
+        walletKeyPair.publicKey,
+      );
 
-//     const anchorProgram = await loadAuctionHouseProgram(walletKeyPair, env);
-//     const auctionHouseObj = await anchorProgram.account.auctionHouse.fetch(
-//       auctionHouseKey,
-//     );
-//     const [auctionHouseFeeAccount] = await getAuctionHouseFeeAcct(
-//       auctionHouseKey,
-//     );
-//     const buyerWalletKey = new web3.PublicKey(buyerWallet);
-//     const sellerWalletKey = new web3.PublicKey(sellerWallet);
+      const args: CloseEscrowAccountInstructionArgs = {
+        escrowPaymentBump
+    };
+    const accounts: CloseEscrowAccountInstructionAccounts = {
+        wallet: walletKeyPair.publicKey,
+        escrowPaymentAccount,
+        auctionHouse: auctionHouseKey,
+    };
 
-//     const [buyerReceiptTokenAccount] = await getAtaForMint(mint, buyer);
+    const instruction = createCloseEscrowAccountInstruction(accounts, args);
 
-//     const buyPriceAdjusted = new BN(
-//       await getPriceWithMantissa(
-//         buyPrice,
-//         auctionHouseObj.treasuryMint,
-//         walletKeyPair,
-//         anchorProgram,
-//       ),
-//     );
+    const tx = await sendTransactionWithRetryWithKeypair(
+      auctionHouseProgram.provider.connection,
+      walletKeyPair,
+      [instruction],
+      [walletKeyPair],
+      'max',
+    );
 
-//     const tokenSizeAdjusted = new BN(
-//       await getPriceWithMantissa(
-//         tokenSize,
-//         mintKey,
-//         walletKeyPair,
-//         anchorProgram,
-//       ),
-//     );
+    log.info(
+      'Transaction:',
+      tx.txid,
+      '| Close escrow acount',
+      'from your account',
+      walletKeyPair.publicKey.toString(),
+      'with Auction House',
+      auctionHouse,
+    );
+  });
 
-//     const tokenAccountKey = (await getAtaForMint(mintKey, sellerWalletKey))[0];
+programCommand('execute_sale')
+  .option('-ah, --auction-house <string>', 'Specific auction house')
+  .option('-b, --buy-price <string>', 'Price you wish to sell for')
+  .option('-m, --mint <string>', 'Mint of the token to purchase')
+  .option('-t, --token-size <string>', 'Amount of tokens you want to sell')
+  .option('-bw, --buyer-wallet <string>', 'Buyer wallet')
+  .option('-sw, --seller-wallet <string>', 'Buyer wallet')
+  .description('Execute sale between provided buyer and seller trade state accounts transferring funds to seller wallet and token to buyer wallet.')
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  .action(async (directory, cmd) => {
+    const {
+      keypair,
+      env,
+      auctionHouse,
+      buyPrice,
+      mint,
+      tokenSize,
+      buyerWallet,
+      sellerWallet,
+    } = cmd.opts();
 
-//     const [listingConfig] = await getAuctioneerListingConfig(
-//       walletKeyPair.publicKey,
-//       auctionHouseKey,
-//       tokenAccountKey,
-//       auctionHouseObj.treasuryMint,
-//       mintKey,
-//       tokenSizeAdjusted,
-//     );
+    const auctionHouseKey = new web3.PublicKey(auctionHouse);
+    const walletKeyPair = loadWalletKey(keypair);
 
-//     const buyerTradeState = (
-//       await getAuctionHouseTradeState(
-//         auctionHouseKey,
-//         buyerWalletKey,
-//         tokenAccountKey,
-//         auctionHouseObj.treasuryMint,
-//         mintKey,
-//         buyPriceAdjusted,
-//         tokenSizeAdjusted,
-//       )
-//     )[0];
+    const mintKey = new web3.PublicKey(mint);
+    const buyer = new web3.PublicKey(buyerWallet);
+    const seller = new web3.PublicKey(sellerWallet);
 
-//     const [sellerTradeState] = await getAuctionHouseTradeState(
-//       auctionHouseKey,
-//       sellerWalletKey,
-//       tokenAccountKey,
-//       auctionHouseObj.treasuryMint,
-//       mintKey,
-//       buyPriceAdjusted,
-//       tokenSizeAdjusted,
-//     );
+    const [auctioneerAuthority, auctioneerAuthorityBump] =
+      await getAuctioneerAuthority(auctionHouseKey);
 
-//     const [ahAuctioneerPda] = await getAHAuctioneerPDA(
-//       auctionHouseKey,
-//       auctioneerAuthority,
-//     );
+    const anchorProgram = await loadAuctionHouseProgram(walletKeyPair, env);
+    const auctionHouseObj = await anchorProgram.account.auctionHouse.fetch(
+      auctionHouseKey,
+    );
+    const [auctionHouseFeeAccount] = await getAuctionHouseFeeAcct(
+      auctionHouseKey,
+    );
+    const buyerWalletKey = new web3.PublicKey(buyerWallet);
+    const sellerWalletKey = new web3.PublicKey(sellerWallet);
 
-//     const [freeTradeState, freeTradeStateBump] =
-//       await getAuctionHouseTradeState(
-//         auctionHouseKey,
-//         sellerWalletKey,
-//         tokenAccountKey,
-//         auctionHouseObj.treasuryMint,
-//         mintKey,
-//         new BN(0),
-//         tokenSizeAdjusted,
-//       );
-//     const [escrowPaymentAccount, escrowPaymentBump] =
-//       await getAuctionHouseBuyerEscrow(auctionHouseKey, buyerWalletKey);
-//     const [programAsSigner, programAsSignerBump] =
-//       await getAuctionHouseProgramAsSigner();
-//     const metadata = await getMetadata(mintKey);
+    const [buyerReceiptTokenAccount] = await getAtaForMint(mintKey, buyerWalletKey);
 
-//     const executeSaleArgs: ExecuteSaleInstructionArgs = {
-//       escrowPaymentBump,
-//       freeTradeStateBump,
-//       programAsSignerBump,
-//       auctioneerAuthorityBump,
-//       buyerPrice: 1000000000,
-//       tokenSize: 1,
-//     };
+    const buyPriceAdjusted = new BN(
+      await getPriceWithMantissa(
+        buyPrice,
+        auctionHouseObj.treasuryMint,
+        walletKeyPair,
+        anchorProgram,
+      ),
+    );
 
-//     const executeSaleAccounts: ExecuteSaleInstructionAccounts = {
-//       auctionHouseProgram: AUCTION_HOUSE_PROGRAM_ID,
-//       listingConfig,
-//       buyer,
-//       seller,
-//       tokenAccount: tokenAccountKey,
-//       tokenMint: mintKey,
-//       metadata,
-//       treasuryMint: auctionHouseObj.treasuryMint,
-//       escrowPaymentAccount,
-//       sellerPaymentReceiptAccount: seller,
-//       buyerReceiptTokenAccount,
-//       authority: walletKeyPair.publicKey,
-//       auctionHouse: auctionHouseKey,
-//       auctionHouseFeeAccount,
-//       auctionHouseTreasury: new PublicKey(
-//         'CB6WiXVsqDLQtZ6ZEdUVkGc7yFVB5nHiR7tEMiYePeDd',
-//       ),
-//       buyerTradeState,
-//       sellerTradeState,
-//       freeTradeState,
-//       auctioneerAuthority,
-//       ahAuctioneerPda,
-//       programAsSigner,
-//     };
+    const tokenSizeAdjusted = new BN(
+      await getPriceWithMantissa(
+        tokenSize,
+        mintKey,
+        walletKeyPair,
+        anchorProgram,
+      ),
+    );
 
-//     const instruction = createExecuteSaleInstruction(
-//       executeSaleAccounts,
-//       executeSaleArgs,
-//     );
+    const [tokenAccountKey] = (await getAtaForMint(mintKey, sellerWalletKey));
 
-//     await sendTransactionWithRetryWithKeypair(
-//       anchorProgram.provider.connection,
-//       walletKeyPair,
-//       [instruction],
-//       [walletKeyPair],
-//       'max',
-//     );
+    const [listingConfig] = await getAuctioneerListingConfig(
+      walletKeyPair.publicKey,
+      auctionHouseKey,
+      tokenAccountKey,
+      auctionHouseObj.treasuryMint,
+      mintKey,
+      tokenSizeAdjusted,
+    );
 
-//     log.info(
-//       'Accepted',
-//       tokenSize,
-//       mint,
-//       'sale from wallet',
-//       sellerWalletKey.toBase58(),
-//       'to',
-//       buyerWalletKey.toBase58(),
-//       'for',
-//       buyPrice,
-//       'from your account with Auction House',
-//       auctionHouse,
-//     );
-//   });
+    const [buyerTradeState, tradeStateBump] = await getAuctionHouseTradeState(
+      walletKeyPair.publicKey,
+      auctionHouseKey,
+      tokenAccountKey,
+      auctionHouseObj.treasuryMint,
+      mintKey,
+      buyPriceAdjusted,
+      tokenSizeAdjusted,
+    );
+
+    const [sellerTradeState] = await getAuctionHouseTradeState(
+      walletKeyPair.publicKey,
+      auctionHouseKey,
+      tokenAccountKey,
+      auctionHouseObj.treasuryMint,
+      mintKey,
+      new BN('0'),
+      tokenSizeAdjusted,
+    );
+
+    const [ahAuctioneerPda] = await getAHAuctioneerPDA(
+      auctionHouseKey,
+      auctioneerAuthority,
+    );
+
+    const [freeTradeState, freeTradeStateBump] =
+      await getAuctionHouseTradeState(
+        auctionHouseKey,
+        sellerWalletKey,
+        tokenAccountKey,
+        auctionHouseObj.treasuryMint,
+        mintKey,
+        new BN(0),
+        tokenSizeAdjusted,
+      );
+    const [escrowPaymentAccount, escrowPaymentBump] =
+      await getAuctionHouseBuyerEscrow(auctionHouseKey, buyerWalletKey);
+    const [programAsSigner, programAsSignerBump] =
+      await getAuctionHouseProgramAsSigner();
+    const metadata = await getMetadata(mintKey);
+
+    const executeSaleArgs: ExecuteSaleInstructionArgs = {
+      escrowPaymentBump,
+      freeTradeStateBump,
+      programAsSignerBump,
+      auctioneerAuthorityBump,
+      buyerPrice: buyPriceAdjusted,
+      tokenSize: tokenSizeAdjusted,
+    };
+
+    const executeSaleAccounts: ExecuteSaleInstructionAccounts = {
+      auctionHouseProgram: AUCTION_HOUSE_PROGRAM_ID,
+      listingConfig,
+      buyer,
+      seller,
+      tokenAccount: tokenAccountKey,
+      tokenMint: mintKey,
+      metadata,
+      treasuryMint: auctionHouseObj.treasuryMint,
+      escrowPaymentAccount,
+      sellerPaymentReceiptAccount: seller,
+      buyerReceiptTokenAccount,
+      authority: auctionHouseObj.authority,
+      auctionHouse: auctionHouseKey,
+      auctionHouseFeeAccount,
+      auctionHouseTreasury: auctionHouseObj.auctionHouseTreasury,
+      buyerTradeState,
+      sellerTradeState,
+      freeTradeState,
+      auctioneerAuthority,
+      ahAuctioneerPda,
+      programAsSigner,
+    };
+
+    const instruction = createExecuteSaleInstruction(
+      executeSaleAccounts,
+      executeSaleArgs,
+    );
+
+    const tx = await sendTransactionWithRetryWithKeypair(
+      anchorProgram.provider.connection,
+      walletKeyPair,
+      [instruction],
+      [walletKeyPair],
+      'max',
+    );
+
+    log.info(
+      'Transaction:',
+      tx.txid,
+      ' | Accepted',
+      tokenSize,
+      mint,
+      'sale from wallet',
+      sellerWalletKey.toBase58(),
+      'to',
+      buyerWalletKey.toBase58(),
+      'for',
+      buyPrice,
+      'from your account with Auction House',
+      auctionHouse,
+    );
+  });
 
 function programCommand(name: string) {
   return program
