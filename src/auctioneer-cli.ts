@@ -760,7 +760,7 @@ programCommand('buy')
       listingConfig,
       seller: sellerWalletKey,
       wallet: walletKeyPair.publicKey,
-      paymentAccount: paymentAccountKey,
+      paymentAccount: walletKeyPair.publicKey,
       transferAuthority: walletKeyPair.publicKey,
       treasuryMint: auctionHouseObj.treasuryMint,
       tokenAccount: tokenAccountKey,
@@ -773,6 +773,9 @@ programCommand('buy')
       auctioneerAuthority,
       ahAuctioneerPda,
     };
+
+    console.log('accounts', ObjtoString(accounts));
+    
     
     const instruction = createBuyInstruction(accounts, args);
 
