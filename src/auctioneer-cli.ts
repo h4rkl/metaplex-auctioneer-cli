@@ -662,7 +662,7 @@ programCommand('withdraw')
 programCommand('buy')
   .option('-ah, --auction-house <string>', 'Specific auction house')
   .option('-b, --buy-price <string>', 'Price you wish to purchase for')
-  .option('-m, --mint <string>', 'Mint of the token to purchase')
+  .option('-m, --mint <string>', 'Mint of the NFT/token to purchase')
   .option('-sw, --seller-wallet <string>', 'Seller wallet')
   .description(
     'Create a private buy bid by creating a `buyer_trade_state` account and an `escrow_payment` account and funding the escrow with the necessary SOL or SPL token amount.',
@@ -703,13 +703,18 @@ programCommand('buy')
       ),
     );
 
+    const [paymentAccountKey] = await getAtaForMint(
+      auctionHouseObj.treasuryMint,
+      walletKeyPair.publicKey,
+    );
+
     const [tokenAccountKey] = await getAtaForMint(
       mintKey,
       sellerWalletKey,
     );
 
     const [listingConfig] = await getAuctioneerListingConfig(
-      walletKeyPair.publicKey,
+      sellerWalletKey,
       auctionHouseKey,
       tokenAccountKey,
       auctionHouseObj.treasuryMint,
@@ -755,7 +760,7 @@ programCommand('buy')
       listingConfig,
       seller: sellerWalletKey,
       wallet: walletKeyPair.publicKey,
-      paymentAccount: walletKeyPair.publicKey,
+      paymentAccount: paymentAccountKey,
       transferAuthority: walletKeyPair.publicKey,
       treasuryMint: auctionHouseObj.treasuryMint,
       tokenAccount: tokenAccountKey,
@@ -768,7 +773,7 @@ programCommand('buy')
       auctioneerAuthority,
       ahAuctioneerPda,
     };
-
+    
     const instruction = createBuyInstruction(accounts, args);
 
     const tx = await sendTransactionWithRetryWithKeypair(

@@ -63,18 +63,7 @@ export function uuidFromConfigPubkey(configAccount: PublicKey) {
   return configAccount.toBase58().slice(0, 6);
 }
 
-export const getTokenWallet = async function (
-  wallet: PublicKey,
-  mint: PublicKey,
-) {
-  return (
-    await PublicKey.findProgramAddress(
-      [wallet.toBuffer(), TOKEN_PROGRAM_ID.toBuffer(), mint.toBuffer()],
-      SPL_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID,
-    )
-  )[0];
-};
-
+// Associated SPL token account
 export const getAtaForMint = async (
   mint: anchor.web3.PublicKey,
   buyer: anchor.web3.PublicKey,
